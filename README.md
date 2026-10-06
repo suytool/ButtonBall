@@ -18,9 +18,9 @@
 
 ## 截图
 
-| 主界面 | 操作选择 | 支持作者 | 桌面悬浮球 |
-|--------|----------|----------|------------|
-| ![主界面](screenshots/01_main.png) | ![操作选择](screenshots/02_picker.png) | ![支持作者](screenshots/03_support.png) | ![桌面悬浮球](screenshots/04_ball.png) |
+| 主界面 | 操作选择 | 桌面悬浮球 |
+|--------|----------|------------|
+| ![主界面](screenshots/01_main.png) | ![操作选择](screenshots/02_picker.png) | ![桌面悬浮球](screenshots/04_ball.png) |
 
 ## 下载
 
