@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">按钮大师悬浮球</string>
+
+    <!-- 主界面 -->
+    <string name="main_title">按钮大师</string>
+    <string name="main_desc">桌面常驻一个可拖动的小浮球：单击、双击、长按可各自绑定不同操作，还支持自定义颜色、大小与透明度。</string>
+    <string name="ball_switch_title">启用悬浮球</string>
+    <string name="ball_switch_desc">开启后在屏幕上出现可拖动的悬浮球</string>
+    <string name="reset_position">重置悬浮球位置</string>
+
+    <!-- 手势绑定（多功能） -->
+    <string name="gesture_card_title">操作绑定（一球多功能）</string>
+    <string name="gesture_card_desc">每个手势可绑定不同的操作</string>
+    <string name="gesture_single">单击</string>
+    <string name="gesture_single_hint">轻点一下浮球</string>
+    <string name="gesture_double">双击</string>
+    <string name="gesture_double_hint">快速连点两下</string>
+    <string name="gesture_long">长按</string>
+    <string name="gesture_long_hint">长按约 0.5 秒</string>
+    <string name="change">修改</string>
+
+    <!-- 外观定制 -->
+    <string name="appearance_title">外观定制</string>
+    <string name="appearance_color">颜色</string>
+    <string name="appearance_size">大小</string>
+    <string name="appearance_alpha">透明度</string>
+    <string name="size_s">小</string>
+    <string name="size_m">中</string>
+    <string name="size_l">大</string>
+
+    <!-- 权限 -->
+    <string name="permission_title">权限</string>
+    <string name="granted">已授权</string>
+    <string name="not_granted">未授权</string>
+    <string name="btn_overlay">授予悬浮窗权限</string>
+    <string name="btn_notification">授予通知使用权（可选）</string>
+    <string name="btn_accessibility">授予无障碍权限</string>
+    <string name="status_overlay">悬浮窗：显示浮球必需，点击前往系统设置开启</string>
+    <string name="status_notification">通知使用权：可提高媒体控制的精确度（可选）</string>
+    <string name="status_accessibility">无障碍：系统操作（回桌面/返回等）需要</string>
+    <string name="need_overlay_first">请先授予悬浮窗权限，再开启悬浮球</string>
+
+    <!-- 动作选择界面 -->
+    <string name="picker_title">选择操作</string>
+    <string name="picker_title_for">选择操作 · %1$s</string>
+    <string name="tab_media">媒体</string>
+    <string name="tab_system">系统</string>
+    <string name="tab_special">特殊功能</string>
+    <string name="action_set_fmt">%1$s 已设为：%2$s</string>
+    <string name="action_failed">%1$s 未执行（系统动作需无障碍权限，媒体动作需有媒体正在播放）</string>
+
+    <!-- 快捷操作面板 -->
+    <string name="panel_play">播放/暂停</string>
+    <string name="panel_prev">上一曲</string>
+    <string name="panel_next">下一曲</string>
+    <string name="panel_vol_up">增加音量</string>
+    <string name="panel_vol_down">减少音量</string>
+    <string name="panel_home">回到桌面</string>
+    <string name="menu_settings">打开设置</string>
+    <string name="menu_hide">隐藏浮球</string>
+
+    <!-- 支持作者 -->
+    <string name="support_card_title">支持作者</string>
+    <string name="support_card_desc">如果这个悬浮球帮到了你，欢迎扫码支持一下</string>
+    <string name="support_btn">支持作者</string>
+    <string name="support_dialog_title">扫一扫，支持作者</string>
+    <string name="support_dialog_hint">感谢你的支持与鼓励</string>
+    <string name="support_qr_1">赞赏二维码 1</string>
+    <string name="support_qr_2">赞赏二维码 2</string>
+    <string name="close">关闭</string>
+
+    <!-- 悬浮球通知 -->
+    <string name="notif_channel">悬浮球运行通知</string>
+    <string name="notif_title">按钮大师运行中</string>
+    <string name="notif_text">单击/双击/长按浮球执行操作</string>
+
+    <!-- 服务标签（用于系统设置列表中的展示名） -->
+    <string name="notif_access_label">按钮大师（媒体控制）</string>
+    <string name="accessibility_label">按钮大师（系统操作）</string>
+</resources>
