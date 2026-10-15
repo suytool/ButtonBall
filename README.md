@@ -78,7 +78,6 @@
 
 ```
 ButtonBall/
-├── apk/buttonball-v0.0.1.apk        # 已编译的安装包
 ├── screenshots/                     # 应用界面截图
 └── app/src/main/java/com/example/buttonball/
     ├── MainActivity.kt              # 主界面：开关、手势绑定、外观定制、权限入口、支持作者
