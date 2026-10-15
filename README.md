@@ -24,8 +24,9 @@
 
 ## 下载
 
-- 最新安装包：**[buttonball-v0.0.1.apk](apk/buttonball-v0.0.1.apk)**（可直接安装，最低 Android 8.0）
-- 源码：本仓库即可。
+前往 [Releases 页面](https://github.com/suytool/ButtonBall/releases/tag/v0.0.1) 下载：
+**[buttonball-v0.0.1.apk](https://github.com/suytool/ButtonBall/releases/download/v0.0.1/buttonball-v0.0.1.apk)**
+（可直接安装，最低 Android 8.0）。
 
 ## 默认手势绑定（可在应用内修改）
 
