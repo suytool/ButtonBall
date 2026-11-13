@@ -66,12 +66,24 @@ class MainActivity : AppCompatActivity() {
                 if (!hasOverlayPermission()) {
                     Toast.makeText(this, R.string.need_overlay_first, Toast.LENGTH_LONG).show()
                     ballSwitch.isChecked = false
-                } else {
-                    FloatingBallService.start(this)
+                    return@setOnCheckedChangeListener
+                }
+                val ok = FloatingBallService.start(this)
+                if (!ok) {
+                    // 启动失败时把真实原因告诉用户，并把开关还原
+                    Toast.makeText(
+                        this,
+                        FloatingBallService.lastError ?: getString(R.string.err_service),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    ballSwitch.isChecked = false
+                    updateSwitchState(false)
+                    return@setOnCheckedChangeListener
                 }
             } else {
                 FloatingBallService.stop(this)
             }
+            updateSwitchState(checked)
         }
 
         findViewById<Button>(R.id.btn_reset_position).setOnClickListener {
@@ -190,6 +202,18 @@ class MainActivity : AppCompatActivity() {
     private fun refreshUi() {
         ballSwitch.isChecked = FloatingBallService.running
         ballSwitch.isEnabled = hasOverlayPermission()
+        updateSwitchState(FloatingBallService.running)
+
+        // 启动失败时把原因直接显示在开关卡片下方
+        val error = FloatingBallService.lastError
+        findViewById<TextView>(R.id.service_error).apply {
+            if (error.isNullOrEmpty()) {
+                visibility = View.GONE
+            } else {
+                visibility = View.VISIBLE
+                text = error
+            }
+        }
 
         // 手势绑定
         findViewById<TextView>(R.id.gesture_action_single).text =
@@ -226,6 +250,14 @@ class MainActivity : AppCompatActivity() {
             getString(if (notifOk) R.string.granted else R.string.not_granted)
         findViewById<TextView>(R.id.status_accessibility).text =
             getString(if (accOk) R.string.granted else R.string.not_granted)
+    }
+
+    /** 开关下方的状态文字：开启时为绿色“已开启”，关闭时为灰色“已关闭” */
+    private fun updateSwitchState(on: Boolean) {
+        findViewById<TextView>(R.id.switch_state).apply {
+            text = getString(if (on) R.string.switch_on else R.string.switch_off)
+            setTextColor(getColor(if (on) R.color.success else R.color.text_secondary))
+        }
     }
 
     // ------------------------------------------------------------- 权限检测

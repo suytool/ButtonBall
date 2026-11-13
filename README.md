@@ -24,9 +24,25 @@
 
 ## 下载
 
-前往 [Releases 页面](https://github.com/suytool/ButtonBall/releases/tag/v0.0.1) 下载：
-**[buttonball-v0.0.1.apk](https://github.com/suytool/ButtonBall/releases/download/v0.0.1/buttonball-v0.0.1.apk)**
+前往 [Releases 页面](https://github.com/suytool/ButtonBall/releases) 下载最新版：
+**[buttonball-v0.0.1-1.apk](https://github.com/suytool/ButtonBall/releases/download/v0.0.1-1/buttonball-v0.0.1-1.apk)**
 （可直接安装，最低 Android 8.0）。
+
+## 更新记录
+
+- **v0.0.1-1**
+  - 修复：开启开关后悬浮球不显示、点击无效的问题
+    - 启动前把记忆的坐标限制在屏幕可视区域内，避免换分辨率/旋转后球被画到屏幕外
+    - 只有浮球真正显示成功才标记为"运行中"，启动失败会立即复位开关，可再次点击重试
+    - 启动失败时在主界面直接显示失败原因（权限被拦截 / 服务异常）
+    - 补齐 Android 14 前台服务类型声明
+  - 优化：启用开关增加明确的开启/关闭视觉区分（蓝色轨道 + "已开启"绿字 / 灰色轨道 + "已关闭"）
+- **v0.0.1**：首个发布版本，支持单击/双击/长按自定义动作、外观定制、支持作者
+
+## 常见问题
+
+- **开启后看不到悬浮球**：请确认已授予「显示悬浮窗」权限；小米/红米/OPPO/vivo 等机型通常还需要额外允许「后台弹出界面」。若启动失败，主界面开关卡片下方会以红字显示具体原因。
+- **有球但点击没反应**：媒体类动作需要有媒体正在播放（或依赖系统媒体键），系统类动作（回桌面/返回等）需要授予无障碍权限。
 
 ## 默认手势绑定（可在应用内修改）
 

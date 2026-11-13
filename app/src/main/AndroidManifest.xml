@@ -38,7 +38,12 @@
         <service
             android:name=".service.FloatingBallService"
             android:exported="false"
-            android:foregroundServiceType="specialUse" />
+            android:foregroundServiceType="specialUse">
+            <!-- Android 14 起 specialUse 类型建议声明具体用途 -->
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="floating_ball_overlay" />
+        </service>
 
         <!-- 媒体会话监听：用于控制正在播放的媒体（跳曲/播放暂停等） -->
         <service

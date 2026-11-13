@@ -7,13 +7,17 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.Settings
+import android.util.Log
 import android.view.GestureDetector
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -45,33 +49,55 @@ import kotlin.math.abs
 class FloatingBallService : Service() {
 
     companion object {
+        private const val TAG = "FloatingBallService"
         private const val CHANNEL_ID = "floating_ball"
         private const val NOTIF_ID = 1001
         private const val EDGE_MARGIN_DP = 8
         private const val TOUCH_SLOP = 12
 
+        /** 是否已成功运行（只在浮球真正显示后才为 true） */
         @Volatile
         var running: Boolean = false
             private set
 
-        /** 当前运行中的服务实例（用于主界面实时修改外观） */
+        /** 当前存活的实例，用于去重与实时改外观 */
         @Volatile
-        var instance: FloatingBallService? = null
+        private var instance: FloatingBallService? = null
+
+        /** 最近一次启动失败的原因，供主界面展示，便于定位问题 */
+        @Volatile
+        var lastError: String? = null
             private set
 
-        /** 启动悬浮球（需已授予悬浮窗权限） */
-        fun start(context: Context) {
-            if (running) return
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(context)) {
-                return
+        /**
+         * 启动悬浮球。返回是否成功发起了启动；
+         * 失败时 [lastError] 中会写入可读原因。
+         */
+        fun start(context: Context): Boolean {
+            if (instance != null) return true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                !Settings.canDrawOverlays(context)
+            ) {
+                lastError = context.getString(R.string.err_overlay)
+                return false
             }
-            running = true
-            context.startForegroundService(Intent(context, FloatingBallService::class.java))
+            return try {
+                context.startForegroundService(
+                    Intent(context, FloatingBallService::class.java)
+                )
+                lastError = null
+                true
+            } catch (t: Throwable) {
+                lastError = context.getString(R.string.err_start_fmt, t.javaClass.simpleName)
+                Log.e(TAG, "startForegroundService 失败", t)
+                false
+            }
         }
 
         /** 停止悬浮球 */
         fun stop(context: Context) {
             running = false
+            instance = null
             context.stopService(Intent(context, FloatingBallService::class.java))
         }
 
@@ -80,12 +106,14 @@ class FloatingBallService : Service() {
             instance?.applyAppearance()
         }
 
-        /** 重置浮球位置（清空记忆位置并重新放置） */
+        /** 重置浮球位置（清空记忆位置，并在运行中时重新放置到默认位置） */
         fun resetPosition(context: Context) {
             ActionStore.clearPosition(context)
-            if (running) {
+            if (instance != null || running) {
                 stop(context)
-                start(context)
+                Handler(Looper.getMainLooper()).postDelayed({
+                    start(context.applicationContext)
+                }, 400)
             }
         }
     }
@@ -106,14 +134,30 @@ class FloatingBallService : Service() {
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        ensureForeground()
-        createBall()
-        running = true
-        instance = this
+        try {
+            ensureForeground()
+            createBall()
+            instance = this
+            running = true
+            lastError = null
+            Log.d(TAG, "悬浮球启动成功")
+        } catch (t: Throwable) {
+            val msg = describeFailure(t)
+            lastError = msg
+            running = false
+            if (instance === this) instance = null
+            Log.e(TAG, "悬浮球创建失败", t)
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+            stopSelf()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        ensureForeground()
+        if (instance == null) {
+            // onCreate 已失败，不再重复启动
+            stopSelf()
+            return START_NOT_STICKY
+        }
         return START_STICKY
     }
 
@@ -126,6 +170,7 @@ class FloatingBallService : Service() {
         if (::ballView.isInitialized) {
             layoutParams?.let { runCatching { windowManager.removeView(ballView) } }
         }
+        Log.d(TAG, "悬浮球已销毁")
         super.onDestroy()
     }
 
@@ -170,9 +215,11 @@ class FloatingBallService : Service() {
                     }
                     if (isDragging) {
                         layoutParams?.let { lp ->
-                            lp.x = (lp.x + dx).toInt()
-                            lp.y = (lp.y + dy).toInt()
-                            windowManager.updateViewLayout(ballView, lp)
+                            val maxX = (screenWidth() - lp.width).coerceAtLeast(0)
+                            val maxY = (screenHeight() - lp.height).coerceAtLeast(0)
+                            lp.x = (lp.x + dx).toInt().coerceIn(0, maxX)
+                            lp.y = (lp.y + dy).toInt().coerceIn(0, maxY)
+                            runCatching { windowManager.updateViewLayout(ballView, lp) }
                         }
                         downRawX = event.rawX
                         downRawY = event.rawY
@@ -187,9 +234,9 @@ class FloatingBallService : Service() {
             true
         }
 
-        applyAppearance()
-
-        val size = ActionStore.getSizeDp(this).let(::dp)
+        val size = dp(ActionStore.getSizeDp(this))
+        val screenW = screenWidth()
+        val screenH = screenHeight()
         layoutParams = WindowManager.LayoutParams(
             size, size,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
@@ -201,16 +248,18 @@ class FloatingBallService : Service() {
             gravity = Gravity.TOP or Gravity.START
             val saved = ActionStore.getPosition(this@FloatingBallService)
             if (saved != null) {
-                x = saved.first
-                y = saved.second
+                // 关键修复：历史保存的坐标可能因旋转/分辨率变化而落在屏幕外，这里强制收回到可视区域
+                x = saved.first.coerceIn(0, (screenW - size).coerceAtLeast(0))
+                y = saved.second.coerceIn(0, (screenH - size).coerceAtLeast(0))
             } else {
-                val screenW = windowManager.defaultDisplay?.width ?: 0
-                val screenH = windowManager.defaultDisplay?.height ?: 0
                 x = (screenW - size - dp(EDGE_MARGIN_DP)).coerceAtLeast(0)
-                y = screenH * 2 / 3
+                y = (screenH * 2 / 3).coerceIn(0, (screenH - size).coerceAtLeast(0))
             }
         }
+
+        applyAppearance()
         windowManager.addView(ballView, layoutParams)
+        Log.d(TAG, "悬浮球已添加 x=${layoutParams?.x} y=${layoutParams?.y} size=$size")
     }
 
     /** 套用最新的颜色/大小/透明度设置 */
@@ -226,9 +275,7 @@ class FloatingBallService : Service() {
         if (lp != null) {
             lp.width = size
             lp.height = size
-            if (::ballView.isInitialized) {
-                runCatching { windowManager.updateViewLayout(ballView, lp) }
-            }
+            runCatching { windowManager.updateViewLayout(ballView, lp) }
         }
     }
 
@@ -254,14 +301,15 @@ class FloatingBallService : Service() {
 
     private fun snapToEdge() {
         val lp = layoutParams ?: return
-        val screenW = windowManager.defaultDisplay?.width ?: return
+        val screenW = screenWidth()
+        val screenH = screenHeight()
         val half = lp.width / 2
         lp.x = if (lp.x + half < screenW / 2) {
             dp(EDGE_MARGIN_DP)
         } else {
             (screenW - lp.width - dp(EDGE_MARGIN_DP)).coerceAtLeast(0)
         }
-        lp.y = lp.y.coerceIn(0, (windowManager.defaultDisplay?.height ?: 0) - lp.height)
+        lp.y = lp.y.coerceIn(0, (screenH - lp.height).coerceAtLeast(0))
         runCatching { windowManager.updateViewLayout(ballView, lp) }
     }
 
@@ -383,9 +431,34 @@ class FloatingBallService : Service() {
             .setContentIntent(pi)
             .setOngoing(true)
             .build()
-        startForeground(NOTIF_ID, notification)
+
+        // Android 14 起建议显式声明前台服务类型，避免部分机型抛出异常
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                NOTIF_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            )
+        } else {
+            startForeground(NOTIF_ID, notification)
+        }
     }
+
+    // ---------------------------------------------------------------- 工具
+
+    private fun screenWidth(): Int = resources.displayMetrics.widthPixels
+
+    private fun screenHeight(): Int = resources.displayMetrics.heightPixels
 
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density).toInt()
+
+    private fun describeFailure(t: Throwable): String {
+        val detail = t.message ?: t.javaClass.simpleName
+        return when (t) {
+            is SecurityException -> getString(R.string.err_security, detail)
+            is WindowManager.BadTokenException -> getString(R.string.err_badtoken, detail)
+            else -> getString(R.string.err_unknown, detail)
+        }
+    }
 }

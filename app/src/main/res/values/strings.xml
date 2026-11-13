@@ -41,6 +41,16 @@
     <string name="status_accessibility">无障碍：系统操作（回桌面/返回等）需要</string>
     <string name="need_overlay_first">请先授予悬浮窗权限，再开启悬浮球</string>
 
+    <!-- 开关状态与启动失败提示 -->
+    <string name="switch_on">已开启</string>
+    <string name="switch_off">已关闭</string>
+    <string name="err_overlay">未获得悬浮窗权限，请到系统设置中允许本应用「显示悬浮窗」</string>
+    <string name="err_start_fmt">无法启动悬浮球服务（%1$s）</string>
+    <string name="err_security">系统拒绝了悬浮窗权限：%1$s。请检查「显示悬浮窗」以及部分机型的「后台弹出界面」权限</string>
+    <string name="err_badtoken">悬浮窗被系统拦截：%1$s。请在系统设置中允许本应用显示悬浮窗</string>
+    <string name="err_unknown">悬浮球启动失败：%1$s</string>
+    <string name="err_service">悬浮球服务启动失败</string>
+
     <!-- 动作选择界面 -->
     <string name="picker_title">选择操作</string>
     <string name="picker_title_for">选择操作 · %1$s</string>
